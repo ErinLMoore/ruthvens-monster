@@ -1,0 +1,35 @@
+{
+  "name": "ruthvens-monster",
+  "sideEffects": false,
+  "version": "0.0.1",
+  "description": "someday, it will be a playable game",
+  "main": "server.js",
+  "scripts": {
+    "start": "webpack && node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.3",
+    "phaser": "3.16.2"
+  },
+  "devDependencies": {
+    "@babel/core": "7.0.0-rc.1",
+    "@babel/preset-env": "7.0.0-rc.1",
+    "@babel/plugin-proposal-pipeline-operator": "7.0.0-rc.1",
+    "babel-loader": "^8.0.0-beta",
+    "copy-webpack-plugin": "^4.5.2",
+    "webpack": "^3.0.0",
+    "webpack-dev-server": "^2.0.0"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/#!/project/ruthvens-monster"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ]
+}
