@@ -1,21 +1,26 @@
 
 import { isLastFrame, getEdges } from '../helpers/helper_functions.js'
 import { State, StateMachine } from '../helpers/statemachine.js'
+import enemiesConfig  from './characterconfig.js'
+
 
 export const setupEnemy= (name, enemy) => {
   enemy.setCollideWorldBounds(true)
   enemy.currentState = 'idle'
-  enemy.name = name
-  enemy.hitcooldown = 0
-  enemy.maxhitcooldown = 20
-  enemy.bitecooldown = 0
-  enemy.maxbitecooldown = 50
-  enemy.hp = 3
-  enemy.canBeEaten = false
-  enemy.destroyed = false
   enemy.playerlocation = 1000
   enemy.playerfacing = 'left'
-  enemy.WALKING_SPEED = 20
+  enemy.canBeEaten = false
+  enemy.destroyed = false
+  enemy.hitcooldown = 0
+  enemy.bitecooldown = 0
+  enemy.distance
+  enemy.name = name
+  Object.keys(enemiesConfig[name]).forEach(key => {
+    enemy[key] = enemiesConfig[name][key]
+  })
+  
+  enemy.setMass(enemy.mass)
+  enemy.setDrag(enemy.drag[0], enemy.drag[1])
   
   enemy.stateMachine = new StateMachine('idling', {
         idling: new IdleState(),
@@ -23,7 +28,8 @@ export const setupEnemy= (name, enemy) => {
         biting: new BitingState(),
         takingDamage: new TakingDamageState(),
         dead: new DeadState(),
-        gettingEaten: new GettingEatenState()
+        gettingEaten: new GettingEatenState(),
+        launched: new LaunchedState()
       }, [enemy])
 
   enemy.isBlocked = () => {
@@ -33,7 +39,7 @@ export const setupEnemy= (name, enemy) => {
   enemy.getFacing = () => {
     return enemy.body.facing < 14 ? 'left':'right'
   }
-    
+  
   enemy.getWalkingModifier = () => {
     return enemy.flipX ? -1 : 1
   }
@@ -55,9 +61,14 @@ export const updateEnemy = (name, enemy, playerlocation, playerfacing) => {
       playerlocation.x > enemy.body.center.x ? enemy.flipX = true : enemy.flipX = false
   }
   if (enemy.bitecooldown > 0) {enemy.bitecooldown --}
+  if (enemy.hitcooldown > 0) {enemy.hitcooldown --}
+  
+  let distancex =  Math.abs(enemy.body.center.x - playerlocation.x)
+  let distancey = Math.abs(enemy.body.center.y - playerlocation.y)
+  enemy.distance =(distancex + distancey)/2
   enemy.stateMachine.step()
-
-  enemy.anims.play(enemy.currentState+name, true) 
+  console.log(enemy.distancex, enemy.distancey)
+  enemy.anims.play(enemy.currentState +'_'+name, true) 
 }
 
 class IdleState extends State {
@@ -67,10 +78,7 @@ class IdleState extends State {
   }
   
   execute(enemy) {
-    let distancex =  Math.abs(enemy.body.center.x - enemy.playerlocation.x)
-    let distancey = Math.abs(enemy.body.center.y - enemy.playerlocation.y)
-    let distance =(distancex + distancey)/2
-    if ((85 < distance && distance < 160)) {
+    if (enemy.distance < 100 && enemy.distance > 50) {
       this.stateMachine.transition('walking')
       return
     }
@@ -87,14 +95,11 @@ class WalkingState extends State {
   }
   
   execute(enemy) {
-    let distancex =  Math.abs(enemy.body.center.x - enemy.playerlocation.x)
-    let distancey = Math.abs(enemy.body.center.y - enemy.playerlocation.y)
-    let distance =(distancex + distancey)/2
-    if (distance > 160) {
+    if (enemy.distance > 100 || enemy.distance < 20) {
       this.stateMachine.transition('idling')
       return
     }
-    if ( distancex < 75 && enemy.bitecooldown === 0) {
+    if ( enemy.distance < 45  && enemy.bitecooldown === 0) {
       this.stateMachine.transition('biting')
       return
    }
@@ -126,14 +131,31 @@ class TakingDamageState extends State {
   }
   
   execute(enemy) {
-    if (enemy.hp == 0) { 
+    if (enemy.hp <= 0) { 
       enemy.tint = undefined
       this.stateMachine.transition('dead')
       return
     }
-    enemy.hitcooldown -- 
+    // enemy.hitcooldown -- 
     if (enemy.hitcooldown == 0) {
       enemy.tint = undefined
+      this.stateMachine.transition('idling')
+      return
+    }
+  }
+}
+
+class LaunchedState extends State {
+  enter(enemy) {
+    enemy.tint = undefined
+    let modifier = enemy.playerfacing == 'left' ? -1 : 1
+    enemy.setVelocity(100*modifier, -165)
+    enemy.currentState = 'dead'
+  }
+  
+  execute(enemy) {
+    console.log(enemy.body.deltaAbsX(), enemy.body.deltaAbsY(), enemy.body.velocity)
+    if (Math.abs(enemy.body._dy) < .2 && Math.abs(enemy.body._dx) < .2) {
       this.stateMachine.transition('idling')
       return
     }
@@ -153,11 +175,11 @@ class DeadState extends State {
 class GettingEatenState extends State {
   enter(enemy) {
     let rotationModifier = enemy.playerfacing == 'left' ? -1 : 1
-    enemy.body.allowGravity = false
+    enemy.body.allowGravity = true
     enemy.rotation = -.2 * rotationModifier
     enemy.setVelocityX(0)
     enemy.currentState = 'dead'
-    enemy.setVelocityY(-35)
+    enemy.setVelocityY(-165)
     setTimeout(() => {
       enemy.setVelocityY(10)
       enemy.setVelocityX(10) * rotationModifier
@@ -165,7 +187,7 @@ class GettingEatenState extends State {
     },1500)
     setTimeout( () => {
       enemy.destroySelf()
-    }, 3000)
+    }, 1600)
   }
 
   execute(enemy) {

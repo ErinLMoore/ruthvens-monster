@@ -4,6 +4,13 @@ export const createFrames = (spritesheet, framesarray) => {
   return returnframes
 }
 
+export const createAnimation = (key, frames, frameRate, repeat = -1) => ({
+    key: key,
+    frames: createFrames(key.split('_')[1], frames),
+    frameRate: frameRate,
+    repeat: repeat
+})
+
 export const isLastFrame = (character) => {
   return (character.anims.currentFrame) ? character.anims.currentFrame.isLast : false
 }

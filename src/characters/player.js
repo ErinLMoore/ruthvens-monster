@@ -13,13 +13,14 @@ export const setupPlayer = (player) => {
   player.bitecooldown = 0
   player.maxbitecooldown = 30
   player.hitcooldown = 0
-  player.maxhitcooldown = 20
+  player.maxhitcooldown = 100
   player.currentlyConsuming = false
   player.hp = player.maxhp = 3
   player.canEatEnemy = false
   player.destroyed = false
   player.WALKING_SPEED = 100
   player.controlled = false
+  player.setMass(50)
   
     
   player.stateMachine = new StateMachine('idling', {
@@ -83,18 +84,30 @@ export const setupPlayer = (player) => {
       }
     }
   }
-
+  
+  //different in offsets mbetween sizes must be same as difference in y values
+  player.originalSize = () => {
+    player.setSize(40, 29, true).setOffset(10, 16)
+  }
+  
+    player.tallSize = () => {
+      player.setSize(40, 31, true).setOffset(10, 14)
+  }
+    
+    player.shortSize = () => {
+      player.setSize(40, 14, true).setOffset(10, 31)
+    }
+  
   return player
 }
 
 export const updatePlayer = (player) => {
   player.edges = getEdges(player)
   player.stateMachine.step()
-
   if (player.bitecooldown > 0) {player.bitecooldown --}
+  if (player.hitcooldown > 0) {player.hitcooldown --}
   if (player.rearcooldown > 0) {player.rearcooldown --}
-  player.anims.play(player.currentState, true) 
-  // console.log(player.currentState)
+  player.anims.play(player.currentState+ "_hapax", true) 
 }
 
 
@@ -102,7 +115,7 @@ class IdleState extends State {
   enter(player) {
     player.setVelocityX(0)
     player.currentState = 'idle'
-    player.setSize(40, 33, true).setOffset(10, 13)
+    player.originalSize()
   }
   
   execute(player) {
@@ -131,6 +144,7 @@ class IdleState extends State {
 
 class WalkingState extends State {
   enter(player) {
+    player.originalSize()
     player.currentState = 'walk'
     player.flipX = player.scene.cursors.left.isDown && !player.scene.cursors.right.isDown
     player.setVelocityX(player.WALKING_SPEED * player.getWalkingModifier())
@@ -185,7 +199,7 @@ class ConsumingState extends State {
 class CrouchingState extends State {
   enter(player) {
     player.setVelocityX(0)
-    player.setSize(40, 14, true).setOffset(10, 31)
+    player.shortSize()
     player.currentState = 'crouch'
   }
   
@@ -202,7 +216,7 @@ class CrouchingState extends State {
 class RearingState extends State {
   enter(player) {
     player.setVelocityX(.01 * player.getWalkingModifier())
-    player.setSize(40, 44, true).setOffset(10, 0)
+    player.tallSize()
     player.currentState = 'rearup'
   }
    
@@ -231,7 +245,6 @@ class RearingState extends State {
 class RearingDownState extends State {
   enter(player) {
     player.setVelocityX(0)
-    player.setSize(40, 44, true).setOffset(10, 0)
     player.currentState = 'reardown'
   }
    
@@ -261,6 +274,7 @@ class SmashingState extends State {
 class FallingState extends State {
   enter(player) {
     player.currentState = 'fall'
+    player.tallSize()
   }
    
   execute(player) {
@@ -275,7 +289,7 @@ class FallingState extends State {
 class ClimbingState extends State {
   enter(player) {
     player.body.allowGravity = false
-    player.setSize(40, 48, true).setOffset(10, 0)
+    player.tallSize()
     player.currentState = 'climb'
   }
    
@@ -302,11 +316,13 @@ class TakingDamageState extends State {
     player.setVelocityX( 5 * player.getWalkingModifier())
     player.setSize(40, 14, true).setOffset(10, 31)
     player.currentState = 'damage'
+    player.tint = 0xff00ff
   }
   
   execute(player) {
-    player.hitcooldown --
-    if (player.hitcooldown <= 0) {
+    // player.hitcooldown --
+    if (player.hitcooldown <= player.maxhitcooldown-(player.maxhitcooldown/10)) {
+      player.tint = undefined
       player.stateMachine.transition('idling')
       return
     }
@@ -317,6 +333,7 @@ class SleepingState extends State {
   enter(player) {
     player.setVelocityX(0)
     player.currentState = 'sleep'
+    player.originalSize()
   }
   
   execute(player) {
@@ -335,10 +352,3 @@ class ControlledState extends State {
     }
   }
 }
-
-//pixels :(
-
-//ANIMATIONS:
-//damage
-// better climbing
-// :(

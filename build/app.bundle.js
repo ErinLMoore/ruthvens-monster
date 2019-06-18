@@ -9,7 +9,7 @@ webpackJsonp([0],{
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getEdges = exports.isLastFrame = exports.createFrames = void 0;
+exports.getEdges = exports.isLastFrame = exports.createAnimation = exports.createFrames = void 0;
 
 var createFrames = function createFrames(spritesheet, framesarray) {
   var returnframes = [];
@@ -23,6 +23,18 @@ var createFrames = function createFrames(spritesheet, framesarray) {
 };
 
 exports.createFrames = createFrames;
+
+var createAnimation = function createAnimation(key, frames, frameRate) {
+  var repeat = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : -1;
+  return {
+    key: key,
+    frames: createFrames(key.split('_')[1], frames),
+    frameRate: frameRate,
+    repeat: repeat
+  };
+};
+
+exports.createAnimation = createAnimation;
 
 var isLastFrame = function isLastFrame(character) {
   return character.anims.currentFrame ? character.anims.currentFrame.isLast : false;
@@ -43,7 +55,7 @@ exports.getEdges = getEdges;
 
 /***/ }),
 
-/***/ 1390:
+/***/ 1413:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54,13 +66,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _baseScene = _interopRequireDefault(__webpack_require__(504));
+var _baseScene = _interopRequireDefault(__webpack_require__(519));
 
-var _images = __webpack_require__(240);
+var _images = _interopRequireDefault(__webpack_require__(248));
 
-var _misc = __webpack_require__(506);
+var _misc = __webpack_require__(522);
 
-var _enemies = __webpack_require__(239);
+var _enemies = __webpack_require__(247);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -102,22 +114,11 @@ function (_BaseScene) {
     value: function preload() {
       _get(_getPrototypeOf(Scene1.prototype), "preload", this).call(this);
 
-      this.load.tilemapTiledJSON(this.sceneName + '-map', _images.assetsDict.maps.spring);
-      this.load.image('tiles', _images.assetsDict.tiles.spring);
-      this.load.image('background', _images.assetsDict.backgrounds.spring);
-      this.load.spritesheet('hapax', _images.assetsDict.sprites.hapax, {
-        frameWidth: 64,
-        frameHeight: 48
-      });
-      this.load.spritesheet('tam', _images.assetsDict.sprites.tam, {
-        frameWidth: 27,
-        frameHeight: 29
-      });
-      this.load.spritesheet('rarebit', _images.assetsDict.enemies.rarebit, {
-        frameWidth: 40,
-        frameHeight: 32
-      });
-      this.load.image('background', _images.assetsDict.backgrounds.spring);
+      this.load.tilemapTiledJSON(this.sceneName + '-map', _images.default.maps.spring);
+      this.load.image('tiles', _images.default.tiles.spring);
+      this.load.image('backtiles', _images.default.tiles.springback); // this.load.image('background', assetsDict.backgrounds.spring)
+      // this.load.spritesheet('hapax', assetsDict.sprites.hapax, { frameWidth: 64, frameHeight: 48 })
+      // this.load.spritesheet('tam', assetsDict.sprites.tam, { frameWidth: 27, frameHeight: 29 })
     }
   }, {
     key: "create",
@@ -150,7 +151,10 @@ function (_BaseScene) {
         repeat: 0,
         startAt: 10000
       });
-      this.endingIntersection = (this.tilesFromRight(3), this.tilesFromZero(16));
+      this.endTriggerRect = (this.tilesFromRight(3), this.tilesFromZero(16), 100, 100);
+      this.createLightBeam([this.tilesFromZero(15) - this.TILE_SIZE / 2, this.tilesFromZero(24) - this.TILE_SIZE / 2], 450);
+      this.createLightBeam([this.tilesFromZero(17), this.tilesFromZero(23)], 450);
+      this.add.rectangle(this.endTriggerRect, 0xff00ff);
     }
   }, {
     key: "update",
@@ -169,8 +173,9 @@ function (_BaseScene) {
 
       if (this.tam && this.player.body.center.x > this.tam.body.center.x) {
         this.tam.flipX = true;
-      } // this.endingIntersection = this.phaser.Geom.Intersects.RectangleToRectangle(this.endTriggerRect, this.player.getBounds())
+      }
 
+      this.endingIntersection = this.phaser.Geom.Intersects.RectangleToRectangle(this.endTriggerRect, this.player.getBounds());
 
       if (this.player.edges.right > this.endingIntersection[0] && this.player.edges.top < this.endingIntersection[16]) {
         var exiting = true;
@@ -183,8 +188,7 @@ function (_BaseScene) {
 
           _this2.player.controlled = false;
         });
-      } // this.graphics.strokeRectShape(this.endTriggerRect)
-
+      }
     }
   }, {
     key: "onEndingIntersection",
@@ -215,7 +219,7 @@ exports.default = Scene1;
 
 /***/ }),
 
-/***/ 1391:
+/***/ 1414:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -230,103 +234,37 @@ var _helper_functions = __webpack_require__(114);
 
 var walk, idle, bite, climb, rearup, rear, reardown, crouch, sleep, consume, takedamage, fall, smash;
 var playerAnimations = [walk = function walk() {
-  return {
-    key: 'walk',
-    frames: (0, _helper_functions.createFrames)('hapax', [0, 1, 2, 3, 4, 5, 6, 7]),
-    frameRate: 10,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('walk_hapax', [0, 1, 2, 3, 4, 5, 6, 7], 10);
 }, idle = function idle() {
-  return {
-    key: 'idle',
-    frames: (0, _helper_functions.createFrames)('hapax', [8, 9, 10, 10, 9]),
-    frameRate: 3,
-    hideOnComplete: true,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('idle_hapax', [8, 9, 10, 10, 9], 3);
 }, bite = function bite() {
-  return {
-    key: 'bite',
-    frames: (0, _helper_functions.createFrames)('hapax', [11, 12, 11]),
-    frameRate: 7,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('bite_hapax', [11, 12, 11], 7);
 }, climb = function climb() {
-  return {
-    key: 'climb',
-    frames: (0, _helper_functions.createFrames)('hapax', [13, 14, 15, 16]),
-    frameRate: 10,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('climb_hapax', [13, 14, 15, 16], 10);
 }, rearup = function rearup() {
-  return {
-    key: 'rearup',
-    frames: (0, _helper_functions.createFrames)('hapax', [13, 14, 15, 16]),
-    frameRate: 10,
-    repeat: 1
-  };
+  return (0, _helper_functions.createAnimation)('rearup_hapax', [13, 14, 15, 16], 10, 1);
 }, rear = function rear() {
-  return {
-    key: 'rear',
-    frames: (0, _helper_functions.createFrames)('hapax', [16]),
-    frameRate: 1,
-    repeat: 1
-  };
+  return (0, _helper_functions.createAnimation)('rear_hapax', [16], 1, 1);
 }, reardown = function reardown() {
-  return {
-    key: 'reardown',
-    frames: (0, _helper_functions.createFrames)('hapax', [16, 15, 14, 13]),
-    frameRate: 10,
-    repeat: 1
-  };
+  return (0, _helper_functions.createAnimation)('reardown_hapax', [16, 15, 14, 13], 10, 1);
 }, smash = function smash() {
-  return {
-    key: 'smash',
-    frames: (0, _helper_functions.createFrames)('hapax', [17, 17, 18, 19]),
-    frameRate: 10,
-    repeat: 1
-  };
+  return (0, _helper_functions.createAnimation)('smash_hapax', [17, 17, 18, 19], 10, 1);
 }, crouch = function crouch() {
-  return {
-    key: 'crouch',
-    frames: (0, _helper_functions.createFrames)('hapax', [22, 23, 24, 23]),
-    frameRate: 3,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('crouch_hapax', [22, 23, 24, 23], 3);
 }, sleep = function sleep() {
-  return {
-    key: 'sleep',
-    frames: (0, _helper_functions.createFrames)('hapax', [25, 26, 27, 27, 27, 26, 25]),
-    frameRate: 3,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('sleep_hapax', [25, 26, 27, 27, 27, 26, 25], 3);
 }, consume = function consume() {
-  return {
-    key: 'consume',
-    frames: (0, _helper_functions.createFrames)('hapax', [28, 6, 29, 30, 30, 31, 31, 30, 30, 32]),
-    frameRate: 3,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('consume_hapax', [28, 6, 29, 30, 30, 31, 31, 30, 30, 32], 3);
 }, takedamage = function takedamage() {
-  return {
-    key: 'damage',
-    frames: (0, _helper_functions.createFrames)('hapax', [23]),
-    frameRate: 3,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('damage_hapax', [23], 3);
 }, fall = function fall() {
-  return {
-    key: 'fall',
-    frames: (0, _helper_functions.createFrames)('hapax', [20, 21]),
-    frameRate: 3,
-    repeat: -1
-  };
+  return (0, _helper_functions.createAnimation)('fall_hapax', [20, 21], 3);
 }];
 exports.playerAnimations = playerAnimations;
 
 /***/ }),
 
-/***/ 1392:
+/***/ 1415:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -352,7 +290,7 @@ exports.miscAnimations = miscAnimations;
 
 /***/ }),
 
-/***/ 1393:
+/***/ 1416:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -365,48 +303,34 @@ exports.enemyAnimations = void 0;
 
 var _helper_functions = __webpack_require__(114);
 
-var walkrarebit, idlerarebit, attackrarebit, deadrarebit, damagerarebit;
-var enemyAnimations = [walkrarebit = function walkrarebit() {
-  return {
-    key: 'walkrarebit',
-    frames: (0, _helper_functions.createFrames)('rarebit', [4, 5, 6, 7, 8, 9]),
-    frameRate: 6,
-    repeat: -1
-  };
-}, idlerarebit = function idlerarebit() {
-  return {
-    key: 'idlerarebit',
-    frames: (0, _helper_functions.createFrames)('rarebit', [0]),
-    frameRate: 1,
-    repeat: 0
-  };
-}, attackrarebit = function attackrarebit() {
-  return {
-    key: 'attackrarebit',
-    frames: (0, _helper_functions.createFrames)('rarebit', [1, 2, 3, 2, 1, 1]),
-    frameRate: 6,
-    repeat: -1
-  };
-}, damagerarebit = function damagerarebit() {
-  return {
-    key: 'damagerarebit',
-    frames: (0, _helper_functions.createFrames)('rarebit', [10]),
-    frameRate: 1,
-    repeat: 0
-  };
-}, deadrarebit = function deadrarebit() {
-  return {
-    key: 'deadrarebit',
-    frames: (0, _helper_functions.createFrames)('rarebit', [10]),
-    frameRate: 1,
-    repeat: 0
-  };
+var walk_rarebit, idle_rarebit, attack_rarebit, dead_rarebit, damage_rarebit;
+var walk_frorse, idle_frorse, attack_frorse, dead_frorse, damage_frorse;
+var enemyAnimations = [walk_rarebit = function walk_rarebit() {
+  return (0, _helper_functions.createAnimation)('walk_rarebit', [4, 5, 6, 7, 8, 9], 6);
+}, idle_rarebit = function idle_rarebit() {
+  return (0, _helper_functions.createAnimation)('idle_rarebit', [0], 1, 0);
+}, attack_rarebit = function attack_rarebit() {
+  return (0, _helper_functions.createAnimation)('attack_rarebit', [1, 2, 3, 2, 1, 1], 6);
+}, damage_rarebit = function damage_rarebit() {
+  return (0, _helper_functions.createAnimation)('damage_rarebit', [10], 1, 0);
+}, dead_rarebit = function dead_rarebit() {
+  return (0, _helper_functions.createAnimation)('dead_rarebit', [10], 1, 0);
+}, walk_frorse = function walk_frorse() {
+  return (0, _helper_functions.createAnimation)('walk_frorse', [4, 5, 6, 7], 6);
+}, idle_frorse = function idle_frorse() {
+  return (0, _helper_functions.createAnimation)('idle_frorse', [3], 1, 0);
+}, attack_frorse = function attack_frorse() {
+  return (0, _helper_functions.createAnimation)('attack_frorse', [3, 1, 0, 0, 0, 1, 3], 6);
+}, damage_frorse = function damage_frorse() {
+  return (0, _helper_functions.createAnimation)('damage_frorse', [1], 1, 0);
+}, dead_frorse = function dead_frorse() {
+  return (0, _helper_functions.createAnimation)('dead_frorse', [2], 1, 0);
 }];
 exports.enemyAnimations = enemyAnimations;
 
 /***/ }),
 
-/***/ 1394:
+/***/ 1417:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -419,7 +343,7 @@ exports.updatePlayer = exports.setupPlayer = void 0;
 
 var _helper_functions = __webpack_require__(114);
 
-var _statemachine = __webpack_require__(505);
+var _statemachine = __webpack_require__(520);
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -451,13 +375,14 @@ var setupPlayer = function setupPlayer(player) {
   player.bitecooldown = 0;
   player.maxbitecooldown = 30;
   player.hitcooldown = 0;
-  player.maxhitcooldown = 20;
+  player.maxhitcooldown = 100;
   player.currentlyConsuming = false;
   player.hp = player.maxhp = 3;
   player.canEatEnemy = false;
   player.destroyed = false;
   player.WALKING_SPEED = 100;
   player.controlled = false;
+  player.setMass(50);
   player.stateMachine = new _statemachine.StateMachine('idling', {
     idling: new IdleState(),
     walking: new WalkingState(),
@@ -520,6 +445,19 @@ var setupPlayer = function setupPlayer(player) {
         return false;
       }
     }
+  }; //different in offsets mbetween sizes must be same as difference in y values
+
+
+  player.originalSize = function () {
+    player.setSize(40, 29, true).setOffset(10, 16);
+  };
+
+  player.tallSize = function () {
+    player.setSize(40, 31, true).setOffset(10, 14);
+  };
+
+  player.shortSize = function () {
+    player.setSize(40, 14, true).setOffset(10, 31);
   };
 
   return player;
@@ -535,11 +473,15 @@ var updatePlayer = function updatePlayer(player) {
     player.bitecooldown--;
   }
 
+  if (player.hitcooldown > 0) {
+    player.hitcooldown--;
+  }
+
   if (player.rearcooldown > 0) {
     player.rearcooldown--;
   }
 
-  player.anims.play(player.currentState, true); // console.log(player.currentState)
+  player.anims.play(player.currentState + "_hapax", true);
 };
 
 exports.updatePlayer = updatePlayer;
@@ -560,7 +502,7 @@ function (_State) {
     value: function enter(player) {
       player.setVelocityX(0);
       player.currentState = 'idle';
-      player.setSize(40, 33, true).setOffset(10, 13);
+      player.originalSize();
     }
   }, {
     key: "execute",
@@ -609,6 +551,7 @@ function (_State2) {
   _createClass(WalkingState, [{
     key: "enter",
     value: function enter(player) {
+      player.originalSize();
       player.currentState = 'walk';
       player.flipX = player.scene.cursors.left.isDown && !player.scene.cursors.right.isDown;
       player.setVelocityX(player.WALKING_SPEED * player.getWalkingModifier());
@@ -716,7 +659,7 @@ function (_State5) {
     key: "enter",
     value: function enter(player) {
       player.setVelocityX(0);
-      player.setSize(40, 14, true).setOffset(10, 31);
+      player.shortSize();
       player.currentState = 'crouch';
     }
   }, {
@@ -749,7 +692,7 @@ function (_State6) {
     key: "enter",
     value: function enter(player) {
       player.setVelocityX(.01 * player.getWalkingModifier());
-      player.setSize(40, 44, true).setOffset(10, 0);
+      player.tallSize();
       player.currentState = 'rearup';
     }
   }, {
@@ -796,7 +739,6 @@ function (_State7) {
     key: "enter",
     value: function enter(player) {
       player.setVelocityX(0);
-      player.setSize(40, 44, true).setOffset(10, 0);
       player.currentState = 'reardown';
     }
   }, {
@@ -856,6 +798,7 @@ function (_State9) {
     key: "enter",
     value: function enter(player) {
       player.currentState = 'fall';
+      player.tallSize();
     }
   }, {
     key: "execute",
@@ -885,7 +828,7 @@ function (_State10) {
     key: "enter",
     value: function enter(player) {
       player.body.allowGravity = false;
-      player.setSize(40, 48, true).setOffset(10, 0);
+      player.tallSize();
       player.currentState = 'climb';
     }
   }, {
@@ -931,13 +874,14 @@ function (_State11) {
       player.setVelocityX(5 * player.getWalkingModifier());
       player.setSize(40, 14, true).setOffset(10, 31);
       player.currentState = 'damage';
+      player.tint = 0xff00ff;
     }
   }, {
     key: "execute",
     value: function execute(player) {
-      player.hitcooldown--;
-
-      if (player.hitcooldown <= 0) {
+      // player.hitcooldown --
+      if (player.hitcooldown <= player.maxhitcooldown - player.maxhitcooldown / 10) {
+        player.tint = undefined;
         player.stateMachine.transition('idling');
         return;
       }
@@ -963,6 +907,7 @@ function (_State12) {
     value: function enter(player) {
       player.setVelocityX(0);
       player.currentState = 'sleep';
+      player.originalSize();
     }
   }, {
     key: "execute",
@@ -1000,15 +945,11 @@ function (_State13) {
   }]);
 
   return ControlledState;
-}(_statemachine.State); //pixels :(
-//ANIMATIONS:
-//damage
-// better climbing
-// :(
+}(_statemachine.State);
 
 /***/ }),
 
-/***/ 1395:
+/***/ 1418:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1017,16 +958,16 @@ function (_State13) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.dialogueDict = void 0;
+exports.default = void 0;
 var dialogueDict = {
   Scene1: [["p_hapax", "Ad quia voluptate blanditiis qui...."], ["p_tam", "umque optio id sunt aut doloremque. Alias quis exercitationem umque optio id sunt aut doloremque. Alias quis exercitationem"], ["p_tam", "voluptas adipisci aut quia. Et dicta in ut veritatis qui."], ["p_hapax", "glorp..."]],
   Scene2: []
 };
-exports.dialogueDict = dialogueDict;
+exports.default = dialogueDict;
 
 /***/ }),
 
-/***/ 1396:
+/***/ 1419:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1035,22 +976,34 @@ exports.dialogueDict = dialogueDict;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.enemiesDict = void 0;
-var enemiesDict = {
+exports.default = void 0;
+var characterLocations = {
   Scene1: [{
-    'type': 'rarebit',
-    'location': [24, 3]
+    'type': 'hapax',
+    'location': [4.5, 5]
+  }, {
+    'type': 'tam',
+    'location': [7, 4]
   }, {
     'type': 'rarebit',
-    'location': [34, 13]
+    'location': [24, 3],
+    enemy: true
+  }, {
+    'type': 'frorse',
+    'location': [29, 5],
+    enemy: true
+  }, {
+    'type': 'rarebit',
+    'location': [34, 13],
+    enemy: true
   }],
   Scene2: []
 };
-exports.enemiesDict = enemiesDict;
+exports.default = characterLocations;
 
 /***/ }),
 
-/***/ 1397:
+/***/ 1420:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1061,13 +1014,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _baseScene = _interopRequireDefault(__webpack_require__(504));
+var _baseScene = _interopRequireDefault(__webpack_require__(519));
 
-var _images = __webpack_require__(240);
+var _images = __webpack_require__(248);
 
-var _misc = __webpack_require__(506);
+var _misc = __webpack_require__(522);
 
-var _enemies = __webpack_require__(239);
+var _enemies = __webpack_require__(247);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1166,7 +1119,7 @@ exports.default = Scene2;
 
 /***/ }),
 
-/***/ 1398:
+/***/ 1421:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1177,7 +1130,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.DialogPlugin = void 0;
 
-var _phaser = _interopRequireDefault(__webpack_require__(94));
+var _phaser = _interopRequireDefault(__webpack_require__(96));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1443,7 +1396,7 @@ exports.DialogPlugin = DialogPlugin;
 
 /***/ }),
 
-/***/ 1399:
+/***/ 1422:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1454,7 +1407,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.LifebarPlugin = void 0;
 
-var _phaser = _interopRequireDefault(__webpack_require__(94));
+var _phaser = _interopRequireDefault(__webpack_require__(96));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1636,7 +1589,7 @@ exports.LifebarPlugin = LifebarPlugin;
 
 /***/ }),
 
-/***/ 239:
+/***/ 247:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1649,7 +1602,11 @@ exports.updateEnemy = exports.setupEnemy = void 0;
 
 var _helper_functions = __webpack_require__(114);
 
-var _statemachine = __webpack_require__(505);
+var _statemachine = __webpack_require__(520);
+
+var _characterconfig = _interopRequireDefault(__webpack_require__(521));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -1672,24 +1629,27 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 var setupEnemy = function setupEnemy(name, enemy) {
   enemy.setCollideWorldBounds(true);
   enemy.currentState = 'idle';
-  enemy.name = name;
-  enemy.hitcooldown = 0;
-  enemy.maxhitcooldown = 20;
-  enemy.bitecooldown = 0;
-  enemy.maxbitecooldown = 50;
-  enemy.hp = 3;
-  enemy.canBeEaten = false;
-  enemy.destroyed = false;
   enemy.playerlocation = 1000;
   enemy.playerfacing = 'left';
-  enemy.WALKING_SPEED = 20;
+  enemy.canBeEaten = false;
+  enemy.destroyed = false;
+  enemy.hitcooldown = 0;
+  enemy.bitecooldown = 0;
+  enemy.distance;
+  enemy.name = name;
+  Object.keys(_characterconfig.default[name]).forEach(function (key) {
+    enemy[key] = _characterconfig.default[name][key];
+  });
+  enemy.setMass(enemy.mass);
+  enemy.setDrag(enemy.drag[0], enemy.drag[1]);
   enemy.stateMachine = new _statemachine.StateMachine('idling', {
     idling: new IdleState(),
     walking: new WalkingState(),
     biting: new BitingState(),
     takingDamage: new TakingDamageState(),
     dead: new DeadState(),
-    gettingEaten: new GettingEatenState()
+    gettingEaten: new GettingEatenState(),
+    launched: new LaunchedState()
   }, [enemy]);
 
   enemy.isBlocked = function () {
@@ -1727,8 +1687,16 @@ var updateEnemy = function updateEnemy(name, enemy, playerlocation, playerfacing
     enemy.bitecooldown--;
   }
 
+  if (enemy.hitcooldown > 0) {
+    enemy.hitcooldown--;
+  }
+
+  var distancex = Math.abs(enemy.body.center.x - playerlocation.x);
+  var distancey = Math.abs(enemy.body.center.y - playerlocation.y);
+  enemy.distance = (distancex + distancey) / 2;
   enemy.stateMachine.step();
-  enemy.anims.play(enemy.currentState + name, true);
+  console.log(enemy.distancex, enemy.distancey);
+  enemy.anims.play(enemy.currentState + '_' + name, true);
 };
 
 exports.updateEnemy = updateEnemy;
@@ -1753,11 +1721,7 @@ function (_State) {
   }, {
     key: "execute",
     value: function execute(enemy) {
-      var distancex = Math.abs(enemy.body.center.x - enemy.playerlocation.x);
-      var distancey = Math.abs(enemy.body.center.y - enemy.playerlocation.y);
-      var distance = (distancex + distancey) / 2;
-
-      if (85 < distance && distance < 160) {
+      if (enemy.distance < 100 && enemy.distance > 50) {
         this.stateMachine.transition('walking');
         return;
       }
@@ -1789,16 +1753,12 @@ function (_State2) {
   }, {
     key: "execute",
     value: function execute(enemy) {
-      var distancex = Math.abs(enemy.body.center.x - enemy.playerlocation.x);
-      var distancey = Math.abs(enemy.body.center.y - enemy.playerlocation.y);
-      var distance = (distancex + distancey) / 2;
-
-      if (distance > 160) {
+      if (enemy.distance > 100 || enemy.distance < 20) {
         this.stateMachine.transition('idling');
         return;
       }
 
-      if (distancex < 75 && enemy.bitecooldown === 0) {
+      if (enemy.distance < 45 && enemy.bitecooldown === 0) {
         this.stateMachine.transition('biting');
         return;
       }
@@ -1862,13 +1822,12 @@ function (_State4) {
   }, {
     key: "execute",
     value: function execute(enemy) {
-      if (enemy.hp == 0) {
+      if (enemy.hp <= 0) {
         enemy.tint = undefined;
         this.stateMachine.transition('dead');
         return;
-      }
+      } // enemy.hitcooldown -- 
 
-      enemy.hitcooldown--;
 
       if (enemy.hitcooldown == 0) {
         enemy.tint = undefined;
@@ -1881,10 +1840,44 @@ function (_State4) {
   return TakingDamageState;
 }(_statemachine.State);
 
-var DeadState =
+var LaunchedState =
 /*#__PURE__*/
 function (_State5) {
-  _inherits(DeadState, _State5);
+  _inherits(LaunchedState, _State5);
+
+  function LaunchedState() {
+    _classCallCheck(this, LaunchedState);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(LaunchedState).apply(this, arguments));
+  }
+
+  _createClass(LaunchedState, [{
+    key: "enter",
+    value: function enter(enemy) {
+      enemy.tint = undefined;
+      var modifier = enemy.playerfacing == 'left' ? -1 : 1;
+      enemy.setVelocity(100 * modifier, -165);
+      enemy.currentState = 'dead';
+    }
+  }, {
+    key: "execute",
+    value: function execute(enemy) {
+      console.log(enemy.body.deltaAbsX(), enemy.body.deltaAbsY(), enemy.body.velocity);
+
+      if (Math.abs(enemy.body._dy) < .2 && Math.abs(enemy.body._dx) < .2) {
+        this.stateMachine.transition('idling');
+        return;
+      }
+    }
+  }]);
+
+  return LaunchedState;
+}(_statemachine.State);
+
+var DeadState =
+/*#__PURE__*/
+function (_State6) {
+  _inherits(DeadState, _State6);
 
   function DeadState() {
     _classCallCheck(this, DeadState);
@@ -1908,8 +1901,8 @@ function (_State5) {
 
 var GettingEatenState =
 /*#__PURE__*/
-function (_State6) {
-  _inherits(GettingEatenState, _State6);
+function (_State7) {
+  _inherits(GettingEatenState, _State7);
 
   function GettingEatenState() {
     _classCallCheck(this, GettingEatenState);
@@ -1921,11 +1914,11 @@ function (_State6) {
     key: "enter",
     value: function enter(enemy) {
       var rotationModifier = enemy.playerfacing == 'left' ? -1 : 1;
-      enemy.body.allowGravity = false;
+      enemy.body.allowGravity = true;
       enemy.rotation = -.2 * rotationModifier;
       enemy.setVelocityX(0);
       enemy.currentState = 'dead';
-      enemy.setVelocityY(-35);
+      enemy.setVelocityY(-165);
       setTimeout(function () {
         enemy.setVelocityY(10);
         enemy.setVelocityX(10) * rotationModifier;
@@ -1933,7 +1926,7 @@ function (_State6) {
       }, 1500);
       setTimeout(function () {
         enemy.destroySelf();
-      }, 3000);
+      }, 1600);
     }
   }, {
     key: "execute",
@@ -1945,7 +1938,7 @@ function (_State6) {
 
 /***/ }),
 
-/***/ 240:
+/***/ 248:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1954,35 +1947,32 @@ function (_State6) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.assetsDict = void 0;
+exports.default = void 0;
 var assetsDict = {
   'maps': {
-    'spring': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspringlarge.json?1545687869894',
+    'spring': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspringlarge.json?1557961927206',
     'spring2': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspring2.json?1554248970517'
   },
   'tiles': {
-    'spring': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspringlarge.png?1543428930730'
-  },
-  'backgrounds': {
-    'spring': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspring-background.jpg?1548620539854'
+    'spring': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspringnewworking.png?1557961908640',
+    'springback': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fspring-background-tiles-large.png?1557961918378'
   },
   'sprites': {
     'hapax': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fhapax.png?1552853540479',
-    'tam': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Ftammuz.png?1543170704855'
+    'tam': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Ftammuz.png?1543170704855',
+    'rarebit': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Frabbit.png?1546364100726',
+    'frorse': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Ffrorse.png?v=1559776645151'
   },
-  'characters': {
+  'portraits': {
     'p_tam': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Ftam.png?1543368077470',
     'p_hapax': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Fhapax-1.png?1545779587701'
-  },
-  'enemies': {
-    'rarebit': 'https://cdn.glitch.com/e103aa44-e764-4aaf-a736-a7640d1ec83a%2Frabbit.png?1546364100726'
   }
 };
-exports.assetsDict = assetsDict;
+exports.default = assetsDict;
 
 /***/ }),
 
-/***/ 504:
+/***/ 519:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1993,23 +1983,25 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _phaser = _interopRequireDefault(__webpack_require__(94));
+var _phaser = _interopRequireDefault(__webpack_require__(96));
 
-var _player = __webpack_require__(1391);
+var _player = __webpack_require__(1414);
 
-var _misc = __webpack_require__(1392);
+var _misc = __webpack_require__(1415);
 
-var _enemies = __webpack_require__(1393);
+var _enemies = __webpack_require__(1416);
 
-var _enemies2 = __webpack_require__(239);
+var _enemies2 = __webpack_require__(247);
 
-var _player2 = __webpack_require__(1394);
+var _player2 = __webpack_require__(1417);
 
-var _images = __webpack_require__(240);
+var _images = _interopRequireDefault(__webpack_require__(248));
 
-var _dialogue = __webpack_require__(1395);
+var _dialogue = _interopRequireDefault(__webpack_require__(1418));
 
-var _enemylocations = __webpack_require__(1396);
+var _characterlocations = _interopRequireDefault(__webpack_require__(1419));
+
+var _characterconfig = _interopRequireDefault(__webpack_require__(521));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2042,10 +2034,10 @@ function (_Phaser$Scene) {
     _classCallCheck(this, BaseScene);
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(BaseScene).call(this));
-    _this.TILE_SIZE = 40;
+    _this.TILE_SIZE = 30;
     _this.WORLD_SIZE = {
-      width: 2000,
-      height: 1280
+      width: 1500,
+      height: 960
     };
     _this.player;
     _this.playerActive = false;
@@ -2056,7 +2048,7 @@ function (_Phaser$Scene) {
     _this.phaser = _phaser.default;
     _this.textIndex = -1;
     _this.sceneName = _this.constructor.name;
-    _this.dialogueList = _dialogue.dialogueDict[_this.sceneName];
+    _this.dialogueList = _dialogue.default[_this.sceneName];
     _this.enemies = [];
     _this.endingIntersection;
 
@@ -2070,6 +2062,17 @@ function (_Phaser$Scene) {
   _createClass(BaseScene, [{
     key: "preload",
     value: function preload() {
+      var _this2 = this;
+
+      _characterlocations.default[this.sceneName].forEach(function (sprite) {
+        var spriteSize = _characterconfig.default[sprite.type].size;
+
+        _this2.load.spritesheet(sprite.type, _images.default.sprites[sprite.type], {
+          frameWidth: spriteSize[0],
+          frameHeight: spriteSize[1]
+        });
+      });
+
       this.preloadDialogueImages(this.dialogueList);
     }
   }, {
@@ -2077,59 +2080,60 @@ function (_Phaser$Scene) {
     value: function buildMap() {
       var map;
       var tiles;
+      var backtiles;
       map = this.make.tilemap({
         key: this.sceneName + '-map',
         tileWidth: this.TILE_SIZE,
         tileHeight: this.TILE_SIZE
       });
-      this.sky = this.add.image(1000, 780, 'background');
-      this.sky.fixedToCamera = true;
       this.cameras.main.setBounds(0, 0, this.WORLD_SIZE.width, this.WORLD_SIZE.height);
       this.physics.world.setBounds(0, 0, this.WORLD_SIZE.width, this.WORLD_SIZE.height);
-      tiles = map.addTilesetImage('springlarge', 'tiles');
-      this.blocksLayer = map.createStaticLayer('blocks', tiles, 0, 0);
-      this.blocksLayer.setCollisionBetween(0, 200);
+      tiles = map.addTilesetImage('springlarge2', 'tiles');
+      backtiles = map.addTilesetImage('spring-background-tiles-large', 'backtiles');
+      this.backgroundLayer = map.createStaticLayer('background', backtiles, 0, 0);
       this.groundLayer = map.createStaticLayer('ground', tiles, 0, 0);
       this.groundLayer.setCollisionBetween(0, 200);
-      return {
-        map: map,
-        tiles: tiles
-      };
+      this.blocksLayer = map.createStaticLayer('blocks', tiles, 0, 0);
+      this.blocksLayer.setCollisionBetween(0, 200);
+      this.waterLayer = map.createStaticLayer('water', tiles, 0, 0); // eslint-disable-lin
     }
   }, {
     key: "create",
     value: function create() {
-      var _this2 = this;
+      var _this3 = this;
 
       var mapthings;
       mapthings = this.buildMap();
 
-      _enemylocations.enemiesDict[this.sceneName].forEach(function (item) {
-        _this2.enemies.push({
-          name: item.type,
-          enemy: _this2.physics.add.sprite(_this2.tilesFromZero(item.location[0]), _this2.tilesFromBottom(item.location[1]), item.type)
-        });
+      _characterlocations.default[this.sceneName].forEach(function (item) {
+        //if you put them right on the tile they'll get stuck.
+        if (item.enemy == true) {
+          _this3.enemies.push({
+            name: item.type,
+            enemy: _this3.physics.add.sprite(_this3.tilesFromZero(item.location[0]), _this3.tilesFromBottom(item.location[1]) + 3, item.type)
+          });
+        }
       });
 
       this.enemies.forEach(function (e) {
         (0, _enemies2.setupEnemy)(e.name, e.enemy);
 
-        _this2.physics.add.collider(e.enemy, _this2.groundLayer);
+        _this3.physics.add.collider(e.enemy, _this3.groundLayer);
 
-        _this2.physics.add.collider(e.enemy, _this2.blocksLayer); // this.physics.add.collider(this.enemies[key], this.player)
+        _this3.physics.add.collider(e.enemy, _this3.blocksLayer); // this.physics.add.collider(this.enemies[key], this.player)
 
       });
-      this.player = this.physics.add.sprite(this.tilesFromZero(4.5), this.tilesFromBottom(5), 'hapax').setScale(2);
-      this.player = (0, _player2.setupPlayer)(this.player);
-      mapthings.map.createStaticLayer('water', mapthings.tiles, 0, 0); // eslint-disable-line
+      this.player = this.setupPlayer();
 
       var animations = _player.playerAnimations.concat(_misc.miscAnimations).concat(_enemies.enemyAnimations);
 
       animations.forEach(function (animation) {
-        _this2.anims.create(animation());
+        _this3.anims.create(animation());
       });
+      this.waterLayer.setDepth(1);
+      this.backgroundLayer.setDepth(0);
       this.events.on('toggleActive', function (isActive) {
-        _this2.playerActive = isActive;
+        _this3.playerActive = isActive;
       }, this);
       this.cameras.main.startFollow(this.player, true, 0.05, 0.05);
       this.spacekey = this.input.keyboard.addKey(this.phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -2143,25 +2147,41 @@ function (_Phaser$Scene) {
   }, {
     key: "update",
     value: function update() {
-      var _this3 = this;
+      var _this4 = this;
 
       if (this.gameOver) {
         return;
-      }
+      } // this.sky.tilePositionX = -(this.cameras.x * 0.7)
 
-      this.sky.tilePositionX = -(this.cameras.x * 0.7);
+
       (0, _player2.updatePlayer)(this.player);
       this.enemies = this.enemies.filter(function (e) {
         return e.enemy.destroyed === false;
       });
       this.enemies.forEach(function (e) {
         (0, _enemies2.updateEnemy)(e.name, e.enemy, {
-          x: _this3.player.body.center.x,
-          y: _this3.player.body.center.y
-        }, _this3.player.getFacing());
+          x: _this4.player.body.center.x,
+          y: _this4.player.body.center.y
+        }, _this4.player.getFacing());
 
-        _this3.handleHits(e.enemy);
+        _this4.handleHits(e.enemy);
       });
+    }
+  }, {
+    key: "addASprite",
+    value: function addASprite(name) {
+      // location = characterLocations[this.sceneName].filter (character => character.type == name)[0].location
+      // console.log(location)
+      return this.physics.add.sprite(this.tilesFromZero(4.5), this.tilesFromBottom(5) + 3, 'hapax').setScale(2); // return this.physics.add.sprite(this.tilesFromZero(location[0]), this.tilesFromBottom(location[1])+3, name)
+    }
+  }, {
+    key: "setupPlayer",
+    value: function setupPlayer() {
+      var player = this.addASprite('hapax'); // player.setScale(2)
+      // let player = this.physics.add.sprite(this.tilesFromZero(4.5), this.tilesFromBottom(5)+3, 'hapax').setScale(2)
+
+      (0, _player2.setupPlayer)(player);
+      return player;
     }
   }, {
     key: "destroyAll",
@@ -2180,6 +2200,10 @@ function (_Phaser$Scene) {
       if (intersecting) {
         if ((this.player.currentState == 'bite' || this.player.currentState == 'smash') && enemy.hitcooldown == 0) {
           enemy.stateMachine.transition('takingDamage');
+
+          if (this.player.currentState == 'smash') {
+            enemy.stateMachine.transition('launched');
+          }
         } else {
           enemyHitsPlayer = enemyHitsPlayer || enemy.currentState == 'attack';
         }
@@ -2190,7 +2214,7 @@ function (_Phaser$Scene) {
         this.lifebar.setText(this.player.hp);
       }
 
-      if (enemy.hp === 0 && this.player.currentState == 'bite' && this.checkIfEnemyCanBeEaten(enemy, this.player)) {
+      if (enemy.hp <= 0 && this.player.currentState == 'bite' && this.checkIfEnemyCanBeEaten(enemy, this.player)) {
         this.player.stateMachine.transition('consuming');
         enemy.stateMachine.transition('gettingEaten');
         this.lifebar.setText(this.player.hp);
@@ -2210,10 +2234,10 @@ function (_Phaser$Scene) {
   }, {
     key: "preloadDialogueImages",
     value: function preloadDialogueImages(dialogueList) {
-      var _this4 = this;
+      var _this5 = this;
 
       dialogueList.forEach(function (dialogueItem) {
-        _this4.load.image(dialogueItem[0], _images.assetsDict.characters[dialogueItem[0]]);
+        _this5.load.image(dialogueItem[0], _images.default.portraits[dialogueItem[0]]);
       });
     }
   }, {
@@ -2228,13 +2252,22 @@ function (_Phaser$Scene) {
       player.platform = platformEdges;
     }
   }, {
+    key: "createLightBeam",
+    value: function createLightBeam(origin, length) {
+      var width = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 8;
+      var angle = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 100;
+      var height = 8;
+      var data = [0, height, width, 0, angle + width * 3, length, angle, length];
+      this.add.polygon(origin[0], origin[1], data, 0xffffbb).setBlendMode(this.phaser.BlendModes.SCREEN).setAlpha(.4);
+    }
+  }, {
     key: "incrementText",
     value: function incrementText() {
-      var _this5 = this;
+      var _this6 = this;
 
       this.textIndex += 1;
       setTimeout(function () {
-        _this5.setNextText(_this5.textIndex);
+        _this6.setNextText(_this6.textIndex);
       }, 1000);
     }
   }, {
@@ -2271,7 +2304,7 @@ exports.default = BaseScene;
 
 /***/ }),
 
-/***/ 505:
+/***/ 520:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2376,7 +2409,47 @@ exports.State = State;
 
 /***/ }),
 
-/***/ 506:
+/***/ 521:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var charactersConfig = {
+  'hapax': {
+    size: [64, 48]
+  },
+  'tam': {
+    size: [27, 29]
+  },
+  'rarebit': {
+    size: [40, 32],
+    maxhitcooldown: 20,
+    maxbitecooldown: 50,
+    hp: 2,
+    WALKING_SPEED: 40,
+    mass: 1,
+    drag: [10, 0]
+  },
+  'frorse': {
+    size: [48, 48],
+    maxhitcooldown: 20,
+    maxbitecooldown: 50,
+    hp: 3,
+    WALKING_SPEED: 30,
+    mass: 3,
+    drag: [20, 0]
+  }
+};
+exports.default = charactersConfig;
+
+/***/ }),
+
+/***/ 522:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2395,21 +2468,21 @@ exports.updateMiscSprite = updateMiscSprite;
 
 /***/ }),
 
-/***/ 507:
+/***/ 523:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _phaser = _interopRequireDefault(__webpack_require__(94));
+var _phaser = _interopRequireDefault(__webpack_require__(96));
 
-var _scene = _interopRequireDefault(__webpack_require__(1390));
+var _scene = _interopRequireDefault(__webpack_require__(1413));
 
-var _scene2 = _interopRequireDefault(__webpack_require__(1397));
+var _scene2 = _interopRequireDefault(__webpack_require__(1420));
 
-var _dialog = __webpack_require__(1398);
+var _dialog = __webpack_require__(1421);
 
-var _lifebar = __webpack_require__(1399);
+var _lifebar = __webpack_require__(1422);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2444,4 +2517,4 @@ new _phaser.default.Game(gameConfig);
 
 /***/ })
 
-},[507]);
+},[523]);

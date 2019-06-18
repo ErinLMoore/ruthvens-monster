@@ -1,5 +1,5 @@
 import BaseScene from './base-scene'
-import { assetsDict } from '../assets/images.js'
+import assetsDict from '../assets/images.js'
 import { updateMiscSprite } from '../characters/misc'
 import { setupEnemy, updateEnemy } from '../characters/enemies.js'
 
@@ -8,11 +8,10 @@ export default class Scene1 extends BaseScene {
     super.preload()
     this.load.tilemapTiledJSON(this.sceneName+'-map', assetsDict.maps.spring)
     this.load.image('tiles', assetsDict.tiles.spring)
-    this.load.image('background', assetsDict.backgrounds.spring)
-    this.load.spritesheet('hapax', assetsDict.sprites.hapax, { frameWidth: 64, frameHeight: 48 })
-    this.load.spritesheet('tam', assetsDict.sprites.tam, { frameWidth: 27, frameHeight: 29 })
-    this.load.spritesheet('rarebit', assetsDict.enemies.rarebit, { frameWidth: 40, frameHeight: 32 })
-    this.load.image('background', assetsDict.backgrounds.spring)
+    this.load.image('backtiles', assetsDict.tiles.springback)
+    // this.load.image('background', assetsDict.backgrounds.spring)
+    // this.load.spritesheet('hapax', assetsDict.sprites.hapax, { frameWidth: 64, frameHeight: 48 })
+    // this.load.spritesheet('tam', assetsDict.sprites.tam, { frameWidth: 27, frameHeight: 29 })
   }
 
   create () {
@@ -27,12 +26,14 @@ export default class Scene1 extends BaseScene {
     this.input.keyboard.on(this.phaser.Input.Keyboard.KeyCodes.SPACE, (event) => {this.incrementText()})   
     let timedEventOne = this.time.addEvent({ delay: 5000, callback: this.onTimedEventOne, callbackScope: this, repeat: 0, startAt: 5000 })
     let timedEventTwo = this.time.addEvent({ delay: 10000, callback: this.onTimedEventTwo, callbackScope: this, repeat: 0, startAt: 10000 })
-    this.endingIntersection = (this.tilesFromRight(3), this.tilesFromZero(16))
+    this.endTriggerRect = (this.tilesFromRight(3), this.tilesFromZero(16), 100, 100)
+    this.createLightBeam([this.tilesFromZero(15)- this.TILE_SIZE/2, this.tilesFromZero(24)- this.TILE_SIZE/2], 450)
+    this.createLightBeam([this.tilesFromZero(17), this.tilesFromZero(23)], 450)
+    this.add.rectangle(this.endTriggerRect, 0xff00ff)
   }
 
   update () {
     super.update()
-
 
     if (this.tam) {updateMiscSprite(this.tam, 'float')}
 
@@ -42,11 +43,11 @@ export default class Scene1 extends BaseScene {
     if (this.tam && this.player.body.center.x > this.tam.body.center.x) {
       this.tam.flipX = true
     }
-    // this.endingIntersection = this.phaser.Geom.Intersects.RectangleToRectangle(this.endTriggerRect, this.player.getBounds())
-    
+    this.endingIntersection = this.phaser.Geom.Intersects.RectangleToRectangle(this.endTriggerRect, this.player.getBounds())
     if (this.player.edges.right > this.endingIntersection[0] && this.player.edges.top < this.endingIntersection[16]) {
       var exiting = true
       this.onEndingIntersection()
+
     }
     if (this.player.controlled == true &! exiting) {
       this.input.keyboard.on('keydown', (event) => {
@@ -54,7 +55,6 @@ export default class Scene1 extends BaseScene {
         this.player.controlled = false
       })
     }
-     // this.graphics.strokeRectShape(this.endTriggerRect)
   }
   
   onEndingIntersection() {

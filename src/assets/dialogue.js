@@ -1,4 +1,4 @@
-export const dialogueDict = {
+const dialogueDict = {
   Scene1: [
       ["p_hapax", "Ad quia voluptate blanditiis qui...."],
       ["p_tam", "umque optio id sunt aut doloremque. Alias quis exercitationem umque optio id sunt aut doloremque. Alias quis exercitationem"],
@@ -7,3 +7,5 @@ export const dialogueDict = {
     ],
   Scene2: []
 }
+
+export { dialogueDict as default }
