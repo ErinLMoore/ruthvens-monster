@@ -8,9 +8,9 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
     this.visible = true
     this.text
     this.graphics
-    this.sceneOffset = 0//scene.game.config.height
+    this.sceneOffset = 0// scene.game.config.height
   }
-  
+
   create (arg_opts = {}) {
     let defaults = {
       borderThickness: 3,
@@ -20,7 +20,7 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
       windowColor: 0x303030,
       windowHeight: 50,
       windowWidth: 50,
-      padding: 24,
+      padding: 24
     }
     this.opts = {}
 
@@ -30,7 +30,7 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
 
     this._createWindow()
     // this.toggleWindow()
-    this.setText("HELLO")
+    this.setText('HELLO')
     this.graphics.scrollFactorX = 0
     this.graphics.scrollFactorY = 0
   }
@@ -41,12 +41,11 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
     if (this.graphics) this.graphics.visible = this.visible
     this.scene.events.emit('toggleActive', !this.visible)
   }
-  
 
   setText (text) {
-      this._setText(text)
-      this.text.scrollFactorX = 0
-      this.text.scrollFactorY = 0
+    this._setText(text)
+    this.text.scrollFactorX = 0
+    this.text.scrollFactorY = 0
   }
 
   shutdown () {
@@ -62,7 +61,7 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
   _createWindow () {
     var dimensions = this._calculateWindowDimensions()
     this.graphics = this.scene.add.graphics()
-    this._createOuterWindow( dimensions.x, dimensions.y, dimensions.rectWidth, dimensions.rectHeight)
+    this._createOuterWindow(dimensions.x, dimensions.y, dimensions.rectWidth, dimensions.rectHeight)
     this._createInnerWindow(dimensions.x, dimensions.y, dimensions.rectWidth, dimensions.rectHeight)
   }
 
@@ -79,15 +78,15 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
   _getGameWidth () {
     return (this.scene.sys.game.config.width)
   }
-  
+
   _getGameHeight () {
     return this.scene.sys.game.config.height
   }
-  
+
   _getWindowY () {
     return (this.opts.padding)
   }
-  
+
   _getWindowX () {
     return (this._getGameWidth() - this.opts.padding - this.opts.windowWidth)
   }
@@ -115,7 +114,7 @@ export class LifebarPlugin extends Phaser.Plugins.ScenePlugin {
       y,
       text,
       style: {
-        wordWrap: { width: this._getGameWidth() - (this.opts.padding * 2) - 80}
+        wordWrap: { width: this._getGameWidth() - (this.opts.padding * 2) - 80 }
       }
     })
   }

@@ -5,7 +5,8 @@
   "description": "someday, it will be a playable game",
   "main": "server.js",
   "scripts": {
-    "start": "webpack && node server.js"
+    "start": "webpack && node server.js",
+    "lint": "standard --fix"
   },
   "dependencies": {
     "express": "^4.16.4",
@@ -18,7 +19,13 @@
     "babel-loader": "^8.0.0-beta",
     "copy-webpack-plugin": "^4.5.2",
     "webpack": "^3.0.0",
-    "webpack-dev-server": "^2.0.0"
+    "webpack-dev-server": "^2.0.0",
+    "standard": "^12.0.1"
+  },
+  "standard": {
+    "ignore": [
+      "/app/src/animations/"
+    ]
   },
   "engines": {
     "node": "8.x"

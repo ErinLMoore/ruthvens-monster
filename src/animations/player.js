@@ -11,9 +11,9 @@ export const playerAnimations = [
   rear = () => (createAnimation('rear_hapax', [16], 1, 1)),
   reardown = () => (createAnimation('reardown_hapax', [16, 15, 14, 13], 10, 1)),
   smash = () => (createAnimation('smash_hapax', [17, 17, 18, 19], 10, 1)),
-  crouch = () => (createAnimation('crouch_hapax', [22,23,24,23], 3)),
+  crouch = () => (createAnimation('crouch_hapax', [22, 23, 24, 23], 3)),
   sleep = () => (createAnimation('sleep_hapax', [25, 26, 27, 27, 27, 26, 25], 3)),
   consume = () => (createAnimation('consume_hapax', [28, 6, 29, 30, 30, 31, 31, 30, 30, 32], 3)),
   takedamage = () => (createAnimation('damage_hapax', [23], 3)),
-  fall = () => (createAnimation('fall_hapax', [20, 21], 3)),
+  fall = () => (createAnimation('fall_hapax', [20, 21], 3))
 ]

@@ -8,5 +8,5 @@ export const miscAnimations = [
     frames: createFrames('tam', [0, 1, 2, 3]),
     frameRate: 3,
     repeat: -1
-  }),
+  })
 ]

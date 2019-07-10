@@ -4,32 +4,38 @@ import { miscAnimations } from '../animations/misc'
 import { enemyAnimations } from '../animations/enemies'
 import { setupEnemy, updateEnemy } from '../characters/enemies.js'
 import { setupPlayer, updatePlayer } from '../characters/player.js'
-import assetsDict from '../assets/images.js'
-import dialogueDict from '../assets/dialogue.js'
-import characterLocations  from '../scenes/characterlocations.js'
-import characterConfig  from '../characters/characterconfig.js'
+import assetsDict from '../assets/images.json'
+import dialogueDict from '../assets/dialogue.json'
+import characterLocations  from '../scenes/characterlocations.json'
+import characterConfig  from '../characters/characterconfig.json'
 
 export default class BaseScene extends Phaser.Scene {
   constructor () {
     super()
-      this.TILE_SIZE = 30
-      this.WORLD_SIZE = {width: 1500, height:960}
-      this.player
-      this.playerActive = false
-      this.cursors
-      this.spacekey
-      this.gameOver = false
-      this.sky
-      this.phaser = Phaser
-      this.textIndex = -1
-      this.sceneName = this.constructor.name
-      this.dialogueList = dialogueDict[this.sceneName]
-      this.enemies = []
-      this.endingIntersection
-      Phaser.Scene.call(this, {key: this.sceneName})
+    this.TILE_SIZE = 30
+    this.WORLD_SIZE = {width: 1500, height:960}
+    this.player
+    this.playerActive = false
+    this.cursors
+    this.spacekey
+    this.gameOver = false
+    this.sky
+    this.phaser = Phaser
+    this.textIndex = -1
+    this.sceneName = this.constructor.name
+    this.dialogueList = dialogueDict[this.sceneName]
+    this.enemies = []
+    // this.endingIntersection
+    this.exiting
+    Phaser.Scene.call(this, {key: this.sceneName})
   }
   
   preload () {
+    this.load.tilemapTiledJSON(this.sceneName+'-map', assetsDict.maps[this.sceneName])
+    var stage_name = this.sceneName.slice(0, -1).toLowerCase()
+    this.load.image('tiles', assetsDict.tiles[stage_name+"_fore"])
+    this.load.image('backtiles', assetsDict.tiles[stage_name+"_back"])
+    
     characterLocations[this.sceneName].forEach(sprite => {
       let spriteSize = characterConfig[sprite.type].size
       this.load.spritesheet(sprite.type, assetsDict.sprites[sprite.type], { frameWidth: spriteSize[0], frameHeight: spriteSize[1] })
@@ -42,7 +48,6 @@ export default class BaseScene extends Phaser.Scene {
     var map
     var tiles
     var backtiles
-
     map = this.make.tilemap({ key: this.sceneName+'-map', tileWidth: this.TILE_SIZE, tileHeight: this.TILE_SIZE })
 
 
@@ -61,14 +66,11 @@ export default class BaseScene extends Phaser.Scene {
 
   create () {
 
-    var mapthings
-    mapthings = this.buildMap()
-    
-    characterLocations[this.sceneName].forEach( item => {
+    this.buildMap()
+    var enemyLocations = characterLocations[this.sceneName].filter(item => item.group === 'enemy')
+    enemyLocations.forEach( item => {
       //if you put them right on the tile they'll get stuck.
-      if (item.enemy == true) {
-        this.enemies.push({name: item.type, enemy: this.physics.add.sprite(this.tilesFromZero(item.location[0]), this.tilesFromBottom(item.location[1])+3, item.type)})
-      }
+        this.enemies.push({name: item.type, enemy: this.physics.add.sprite(this.tilesFromZero(item.loc[0]), this.tilesFromBottom(item.loc[1])+3, item.type)})
     })
     
     this.enemies.forEach(e => {
@@ -91,6 +93,10 @@ export default class BaseScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys()
     this.physics.add.collider(this.player, this.groundLayer)
     this.physics.add.collider(this.player, this.blocksLayer, this.enableClimbPlatform)
+    this.physics.add.overlap(this.player, this.backgroundLayer)
+    // Array.from(Array(35).keys())
+    // this.backgroundLayer.setTileIndexCallback([35,36,37], this.onEndingIntersection(), this)
+    
     this.dialog.create()
     this.lifebar.create()
     this.lifebar.setText(this.player.hp)
@@ -109,17 +115,14 @@ export default class BaseScene extends Phaser.Scene {
   
     
   addASprite(name) {
-    // location = characterLocations[this.sceneName].filter (character => character.type == name)[0].location
-    // console.log(location)
-    return this.physics.add.sprite(this.tilesFromZero(4.5), this.tilesFromBottom(5)+3, 'hapax').setScale(2)
-    // return this.physics.add.sprite(this.tilesFromZero(location[0]), this.tilesFromBottom(location[1])+3, name)
+    let _location = (characterLocations[this.sceneName].filter (character => character.type === name)[0]).loc
+    return this.physics.add.sprite(this.tilesFromZero(_location[0]), this.tilesFromBottom(_location[1])+3, name)
   }
   
   setupPlayer() {
-    let player = this.addASprite('hapax')
-    // player.setScale(2)
-    // let player = this.physics.add.sprite(this.tilesFromZero(4.5), this.tilesFromBottom(5)+3, 'hapax').setScale(2)
+    let player = this.addASprite('hapax').setScale(2)
     setupPlayer(player)
+    player.stateMachine.transition('idling')
     return player
   }
 
@@ -133,19 +136,19 @@ export default class BaseScene extends Phaser.Scene {
     let intersecting = this.phaser.Geom.Intersects.RectangleToRectangle(enemy.getBounds(), this.player.getBounds())
 
     if (intersecting) {
-      if ((this.player.currentState == 'bite' || this.player.currentState == 'smash') && enemy.hitcooldown == 0) { 
+      if ((this.player.currentState === 'bite' || this.player.currentState === 'smash') && enemy.hitcooldown === 0) { 
         enemy.stateMachine.transition('takingDamage') 
-        if (this.player.currentState == 'smash') {
+        if (this.player.currentState === 'smash') {
           enemy.stateMachine.transition('launched')
         }
       }
-      else { enemyHitsPlayer = enemyHitsPlayer || enemy.currentState == 'attack' }
+      else { enemyHitsPlayer = enemyHitsPlayer || enemy.currentState === 'attack' }
     }
     if ( enemyHitsPlayer && this.player.hitcooldown <= 0) {
       this.player.stateMachine.transition('takingDamage')
       this.lifebar.setText(this.player.hp)
     }
-    if (enemy.hp <= 0 && this.player.currentState == 'bite' && this.checkIfEnemyCanBeEaten(enemy, this.player)) {
+    if (enemy.hp <= 0 && this.player.currentState === 'bite' && this.checkIfEnemyCanBeEaten(enemy, this.player)) {
       this.player.stateMachine.transition('consuming')
       enemy.stateMachine.transition('gettingEaten')
       this.lifebar.setText(this.player.hp)
@@ -153,7 +156,7 @@ export default class BaseScene extends Phaser.Scene {
   }
   
   checkIfEnemyCanBeEaten (enemy, player) {
-    let relevantSide = player.flipX == true ? player.edges.left : player.edges.right
+    let relevantSide = player.flipX === true ? player.edges.left : player.edges.right
     
     if(Math.abs(enemy.body.center.x - relevantSide) < enemy.body.halfWidth ){
       return true

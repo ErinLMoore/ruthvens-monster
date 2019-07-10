@@ -1,4 +1,8 @@
+MECHANICS:
 
+- no max hp :)
+- tossing (does damage)
+- shockwave
 
 ANIMATIONS:
 
@@ -14,13 +18,14 @@ BACKGROUND:
 
 STAGE:
 
-- 2nd half of lv. 1 with boss
+- 2nd half of lv. 1 with boss + end room
 
 OTHER SPRITES:
 
-- hud (health)
+- improve hud (health)
 - lv. 1 boss
 - crystal
+- 1 more enemy
 
 DIALOGUE:
 
@@ -29,5 +34,5 @@ DIALOGUE:
 
 CODE:
 
-- enemies in stage autoload based on enemylocation object
+- auto load map images in base scene
 - more robust enemy customization

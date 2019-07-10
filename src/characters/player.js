@@ -7,7 +7,7 @@ export const setupPlayer = (player) => {
   player.currentState = 'idle'
   player.isBlocked = false
   player.platform
-  player.edges
+  player.edges = getEdges(player)
   player.rearcooldown = 0
   player.maxrearcooldown = 70
   player.bitecooldown = 0
@@ -58,7 +58,7 @@ export const setupPlayer = (player) => {
   }
   
   player.handleHit= () => {
-    if ( player.hitcooldown == 0) {
+    if ( player.hitcooldown === 0) {
       player.tint = 0xff00ff
       player.hitcooldown = player.maxhitcooldown
       if (player.hp > 0) { player.hp -- }    
@@ -68,10 +68,10 @@ export const setupPlayer = (player) => {
   player.canClimbPlatform = () => {
     let isClose = false
     if(player.platform){
-      if((player.flipX == true) &&  (Math.abs(player.platform.right - player.edges.left ) ) < 31 ){
+      if((player.flipX === true) &&  (Math.abs(player.platform.right - player.edges.left ) ) < 31 ){
        isClose = true
       }
-      else if((player.flipX == false)  && (Math.abs(player.platform.left -player.edges.right)) < 31){
+      else if((player.flipX === false)  && (Math.abs(player.platform.left -player.edges.right)) < 31){
         isClose = true
       }
       if(isClose && (player.edges.bottom > (player.platform.top+25))  ){
@@ -119,7 +119,7 @@ class IdleState extends State {
   }
   
   execute(player) {
-    if (player.rearcooldown == 0 && player.scene.cursors.up.isDown &! player.body.blocked.up)  {
+    if (player.rearcooldown === 0 && player.scene.cursors.up.isDown &! player.body.blocked.up)  {
       player.stateMachine.transition('rearing')
       return
     }
@@ -298,7 +298,7 @@ class ClimbingState extends State {
     if ((player.edges.bottom<player.platform.top ) && player.scene.playerActive)  {
       player.body.allowGravity = true
       player.x += 25 * player.getWalkingModifier()
-      let playerok = player.getFacing() == 'left' ? player.edges.left < player.platform.right : player.edges.right > player.platform.left
+      let playerok = player.getFacing() === 'left' ? player.edges.left < player.platform.right : player.edges.right > player.platform.left
       if (playerok) {
         player.platform = undefined
         player.rearcooldown = player.maxrearcooldown
@@ -347,7 +347,7 @@ class ControlledState extends State {
     player.controlled = true
   }
   execute(player) {
-    if (player.controlled == false) {
+    if (player.controlled === false) {
       player.stateMachine.transition('idling')
     }
   }

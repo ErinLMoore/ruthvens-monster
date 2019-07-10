@@ -13,9 +13,9 @@ export class DialogPlugin extends Phaser.Plugins.ScenePlugin {
     this.closeBtn
     this.sceneOffset = scene.game.config.height
     this.characterImage
-    this.widthScaler = .75
+    this.widthScaler = 0.75
   }
-  
+
   create (arg_opts = {}) {
     let defaults = {
       borderThickness: 3,
@@ -46,13 +46,12 @@ export class DialogPlugin extends Phaser.Plugins.ScenePlugin {
     if (this.characterImage) this.characterImage.visible = this.visible
     this.scene.events.emit('toggleActive', !this.visible)
   }
-  
 
   setText (text, animate) {
     if (this.visible) {
-          let textLine = text[1]
+      let textLine = text[1]
       this.eventCounter = 0
-      this.dialog = textLine .split('')
+      this.dialog = textLine.split('')
       if (this.timedEvent) this.timedEvent.remove()
 
       var tempText = animate ? '' : textLine
@@ -96,7 +95,7 @@ export class DialogPlugin extends Phaser.Plugins.ScenePlugin {
     this.graphics.scrollFactorX = 0
     this.graphics.scrollFactorY = 0
   }
-  
+
   _createCharacterGraphic (character) {
     let x = this.opts.padding + 40
     let y = this._getWindowY() + 40
@@ -117,19 +116,19 @@ export class DialogPlugin extends Phaser.Plugins.ScenePlugin {
   }
 
   _getGameWidth () {
-    return (this.scene.sys.game.config.width)* this.widthScaler
+    return (this.scene.sys.game.config.width) * this.widthScaler
   }
 
   _getGameHeight () {
     return this.scene.sys.game.config.height
   }
-  
+
   _getWindowY () {
     return (this.opts.windowHeight - this.opts.padding)
   }
 
   _calculateWindowDimensions () {
-    var x = this.opts.padding 
+    var x = this.opts.padding
     var y = this._getWindowY()
     var rectWidth = (this._getGameWidth() - (this.opts.padding * 2))
     var rectHeight = this.opts.windowHeight
@@ -184,7 +183,7 @@ export class DialogPlugin extends Phaser.Plugins.ScenePlugin {
       y,
       text,
       style: {
-        wordWrap: { width: this._getGameWidth() - (this.opts.padding * 2) - 80}
+        wordWrap: { width: this._getGameWidth() - (this.opts.padding * 2) - 80 }
       }
     })
   }
@@ -192,7 +191,7 @@ export class DialogPlugin extends Phaser.Plugins.ScenePlugin {
   _animateText () {
     this.eventCounter++
     this.text.setText(this.text.text + this.dialog[this.eventCounter - 1])
-    if (this.eventCounter === this.dialog.length) { 
+    if (this.eventCounter === this.dialog.length) {
       this.timedEvent.remove()
       this.scene.events.emit('endOfText', true)
     }

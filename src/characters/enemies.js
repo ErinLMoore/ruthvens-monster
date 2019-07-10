@@ -1,7 +1,7 @@
 
 import { isLastFrame, getEdges } from '../helpers/helper_functions.js'
 import { State, StateMachine } from '../helpers/statemachine.js'
-import enemiesConfig  from './characterconfig.js'
+import enemiesConfig  from './characterconfig.json'
 
 
 export const setupEnemy= (name, enemy) => {
@@ -14,6 +14,7 @@ export const setupEnemy= (name, enemy) => {
   enemy.hitcooldown = 0
   enemy.bitecooldown = 0
   enemy.distance
+  enemy.prev_velocity = 0
   enemy.name = name
   Object.keys(enemiesConfig[name]).forEach(key => {
     enemy[key] = enemiesConfig[name][key]
@@ -21,7 +22,7 @@ export const setupEnemy= (name, enemy) => {
   
   enemy.setMass(enemy.mass)
   enemy.setDrag(enemy.drag[0], enemy.drag[1])
-  
+  enemy.setOffset(enemy.offset[0], enemy.offset[1])  
   enemy.stateMachine = new StateMachine('idling', {
         idling: new IdleState(),
         walking: new WalkingState(),
@@ -67,8 +68,16 @@ export const updateEnemy = (name, enemy, playerlocation, playerfacing) => {
   let distancey = Math.abs(enemy.body.center.y - playerlocation.y)
   enemy.distance =(distancex + distancey)/2
   enemy.stateMachine.step()
-  console.log(enemy.distancex, enemy.distancey)
   enemy.anims.play(enemy.currentState +'_'+name, true) 
+  
+
+  var d_velocity = (enemy.prev_velocity) - Math.trunc(enemy.body.velocity.x)
+  
+  if (Math.abs(d_velocity > 50) && enemy.body.velocity.x === 0) {
+      console.log(enemy.body.deltaAbsX(), enemy.body.deltaAbsY())
+    console.log(d_velocity)
+      }
+ enemy.prev_velocity = Math.trunc(enemy.body.velocity.x)
 }
 
 class IdleState extends State {
@@ -137,7 +146,7 @@ class TakingDamageState extends State {
       return
     }
     // enemy.hitcooldown -- 
-    if (enemy.hitcooldown == 0) {
+    if (enemy.hitcooldown === 0) {
       enemy.tint = undefined
       this.stateMachine.transition('idling')
       return
@@ -148,14 +157,19 @@ class TakingDamageState extends State {
 class LaunchedState extends State {
   enter(enemy) {
     enemy.tint = undefined
-    let modifier = enemy.playerfacing == 'left' ? -1 : 1
+    let modifier = enemy.playerfacing === 'left' ? -1 : 1
     enemy.setVelocity(100*modifier, -165)
     enemy.currentState = 'dead'
   }
   
   execute(enemy) {
-    console.log(enemy.body.deltaAbsX(), enemy.body.deltaAbsY(), enemy.body.velocity)
+    
     if (Math.abs(enemy.body._dy) < .2 && Math.abs(enemy.body._dx) < .2) {
+      if (enemy.hp <= 0) { 
+      enemy.tint = undefined
+        this.stateMachine.transition('dead')
+        return
+      }
       this.stateMachine.transition('idling')
       return
     }
@@ -174,7 +188,7 @@ class DeadState extends State {
 
 class GettingEatenState extends State {
   enter(enemy) {
-    let rotationModifier = enemy.playerfacing == 'left' ? -1 : 1
+    let rotationModifier = enemy.playerfacing === 'left' ? -1 : 1
     enemy.body.allowGravity = true
     enemy.rotation = -.2 * rotationModifier
     enemy.setVelocityX(0)

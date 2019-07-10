@@ -1,0 +1,10 @@
+{
+  "Spring1": [
+      {"type": "hapax", "loc": [4.5, 5], "group": "player"},
+      {"type": "tam", "loc": [7,4], "group": "misc"},
+      {"type": "rarebit", "loc": [24,3], "group": "enemy"}
+    ],
+  "Spring2": [
+      {"type": "hapax", "loc": [3, 25], "group": "player"}
+  ]
+}

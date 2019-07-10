@@ -1,8 +1,8 @@
 import Phaser from 'phaser'
 
-import Scene1 from './scenes/scene-1'
-import Scene2 from './scenes/scene-2'
-  
+import Spring1 from './scenes/spring-1'
+import Spring2 from './scenes/spring-2'
+
 import { DialogPlugin } from './plugins/dialog'
 import { LifebarPlugin } from './plugins/lifebar'
 
@@ -15,7 +15,7 @@ const gameConfig = {
     default: 'arcade',
     arcade: {
       gravity: { y: 200 },
-      debug: false
+      debug: true
     }
   },
   plugins: {
@@ -24,6 +24,6 @@ const gameConfig = {
       { key: 'LifebarPlugin', plugin: LifebarPlugin, mapping: 'lifebar' }
     ]
   },
-  scene: [Scene1, Scene2]
+  scene: [Spring1, Spring2]
 }
 new Phaser.Game(gameConfig)
